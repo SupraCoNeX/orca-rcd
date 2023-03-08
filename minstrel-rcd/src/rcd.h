@@ -105,6 +105,14 @@ void rcd_phy_init_client(struct client *cl);
 void rcd_phy_dump(struct client *cl, struct phy *phy);
 void rcd_phy_control(struct client *cl, char *data);
 
+/**
+ * char *rcd_phy_read_tpc_support
+ *
+ * Returns: pointer to heap-allocated str buffer. Must be freed by caller
+ * 	after it has been used (printing to output, etc.).
+ */
+char *rcd_phy_read_tpc_support(struct phy *phy);
+
 #define client_printf(cl, ...) ustream_printf(&(cl)->sfd.stream, __VA_ARGS__)
 #define client_vprintf(cl, fmt, va_args) ustream_vprintf(&(cl)->sfd.stream, fmt, va_args)
 #define client_phy_printf(cl, phy, fmt, ...) client_printf(cl, "%s;" fmt, phy_name(phy), ## __VA_ARGS__)

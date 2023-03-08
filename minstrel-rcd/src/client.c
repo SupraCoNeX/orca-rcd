@@ -116,15 +116,18 @@ set_phy_state_compressed(struct client *cl, struct phy *phy, bool add)
 	char buf[128]; /* upper bound on compressed size for 16 bytes is 79 */
 	size_t clen;
 	int error;
-	char *ifaces = phy_interfaces(phy);
+	char *tpc, *ifaces = phy_interfaces(phy);
 	if (!ifaces)
 		return;
 
-	snprintf(str, sizeof(str), "%s;0;%s;%s;%s\n", phy_name(phy), add ? "add" : "remove",
-	         phy_driver(phy), ifaces);
+	tpc = rcd_phy_read_tpc_support(phy);
+	snprintf(str, sizeof(str), "%s;0;%s;%s;%s;%s\n", phy_name(phy),
+		 add ? "add" : "remove", phy_driver(phy), ifaces,
+		 tpc ? tpc : "ERR");
 
 	error = zstd_compress_into(buf, sizeof(buf), str, strlen(str), &clen);
 	free(ifaces);
+	free(tpc);
 	if (error)
 		return;
 
@@ -133,7 +136,7 @@ set_phy_state_compressed(struct client *cl, struct phy *phy, bool add)
 
 void rcd_client_set_phy_state(struct client *cl, struct phy *phy, bool add)
 {
-	char *ifaces;
+	char *ifaces, *tpc;
 
 	if (!cl) {
 		list_for_each_entry(cl, &clients, list)
@@ -156,9 +159,11 @@ void rcd_client_set_phy_state(struct client *cl, struct phy *phy, bool add)
 		if (!ifaces)
 			return;
 
-		client_phy_printf(cl, phy, "0;%s;%s;%s\n", add ? "add" : "remove",
-		                  phy_driver(phy), ifaces);
+		tpc = rcd_phy_read_tpc_support(phy);
+		client_phy_printf(cl, phy, "0;%s;%s;%s;%s\n", add ? "add" : "remove",
+		                  phy_driver(phy), ifaces, tpc ? tpc : "ERR");
 		free(ifaces);
+		free(tpc);
 	}
 }
 
