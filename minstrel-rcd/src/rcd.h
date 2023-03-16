@@ -122,10 +122,6 @@ bool rcd_has_clients(bool compression);
 
 void rcd_config_init(void);
 
-int rcd_debugfs_monitoring_start(const char *path, int port, size_t bufsize, unsigned int timeout,
-                                 bool compression);
-void rcd_debugfs_monitoring_stop(void);
-
 #ifdef CONFIG_MQTT
 int mqtt_config_init(void);
 void mqtt_init(void);
@@ -166,6 +162,10 @@ int zstd_fmt_compress(void **compressed, size_t *clen, const char *fmt, ...);
 int zstd_fmt_compress_va(void **buf, size_t *buflen, const char *fmt, va_list va_args);
 void zstd_stop(bool flush);
 int zstd_read_fmt(struct zstd_buf *buf, const char *fmt, ...);
+
+int rcd_debugfs_monitoring_start(const char *path, int port, size_t bufsize, unsigned int timeout,
+                                 bool compression);
+void rcd_debugfs_monitoring_stop(void);
 #else
 static inline void zstd_not_supported(void) {
 	fprintf(stderr, "ERROR: Trying to use unsupported feature: zstd compression\n");
@@ -183,8 +183,19 @@ static inline int zstd_fmt_compress(void **compressed, size_t *clen, const char 
 	zstd_not_supported();
 	return -1;
 }
-static inline void zstd_read_fmt(struct zstd_buf *buf, const char *fmt, ...)
+static inline void zstd_read_fmt(void *buf, const char *fmt, ...)
 {
+}
+static inline int zstd_fmt_compress_va(void **buf, size_t *buflen, const char *fmt, va_list va_args)
+{
+	zstd_not_supported();
+	return -1;
+}
+static inline int rcd_debugfs_monitoring_start(const char *path, int port, size_t bufsize,
+                                               unsigned int timeout, bool compression)
+{
+	zstd_not_supported();
+	return -1;	
 }
 #endif
 

@@ -14,7 +14,9 @@ struct mon_context {
 	int port;
 	struct uloop_fd mon_fd;
 	struct uloop_fd sfd;
+#ifdef CONFIG_ZSTD
 	struct zstd_buf buf;
+#endif
 	struct list_head clients;
 };
 
@@ -23,22 +25,6 @@ struct mon_client {
 	struct ustream_fd sfd;
 	struct mon_context *ctx;
 };
-
-// static void
-// mon_client_notify_read(struct ustream *s, int bytes)
-// {
-// 	struct mon_client *cl = container_of(s, struct mon_client, sfd.stream);
-// 	char *data
-// 	int len;
-
-// 	while (1) {
-// 		data = ustream_get_read_buf(s, &len);
-// 		if (!data)
-// 			return;
-
-// 		len = mon_client_handle
-// 	}
-// }
 
 static void
 mon_stop(struct mon_context *ctx)

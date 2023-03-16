@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.6)
 
 PROJECT(minstrel-rcd C)
 
-SET(SOURCES main.c phy.c server.c client.c config.c debugfs.c)
+SET(SOURCES main.c phy.c server.c client.c config.c)
 
 ADD_DEFINITIONS(-Wall -Werror)
 IF(CMAKE_C_COMPILER_VERSION VERSION_GREATER 6)
@@ -33,7 +33,7 @@ IF(DEFINED CMAKE_CONFIG_ZSTD)
 	FIND_LIBRARY(zstd_library NAMES zstd)
 	FIND_PATH(zstd_include_dir zstd.h)
 	INCLUDE_DIRECTORIES(${zstd_include_dir})
-	SET(SOURCES ${SOURCES} zstd.c)
+	SET(SOURCES ${SOURCES} zstd.c debugfs.c)
 	SET(LIBS ${LIBS} ${zstd_library})
 	ADD_DEFINITIONS(-DCONFIG_ZSTD)
 ENDIF(DEFINED CMAKE_CONFIG_ZSTD)
