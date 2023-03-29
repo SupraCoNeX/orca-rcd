@@ -44,9 +44,8 @@ rcd_stop(int signo)
 	if (stopped)
 		return;
 
-	rcd_debugfs_monitoring_stop();
-
 #ifdef CONFIG_ZSTD
+	rcd_debugfs_monitoring_stop();
 	zstd_stop(true);
 #endif
 #ifdef CONFIG_MQTT
