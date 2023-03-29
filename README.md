@@ -136,7 +136,7 @@ For monitoring the status of a given access point, make sure the TCP/IP connecti
   ```
   phy1;start;stats;txs
   ```
-_Note: Upon triggering this command, trace lines for `txs` and `rcs` will be printed separately. You can include combinations of the three available functions -  `txs`, `rxs`, and `stats`.
+_Note: Upon triggering this command, trace lines for `txs` and `rcs` will be printed separately. You can include combinations of the three available functions -  `txs`, `rxs`, and `stats`._
 
 
 ### Monitoring information format
@@ -161,7 +161,7 @@ phyID;hex_timestamp_nanosec;txs;macaddr;num_frames;num_acked;probe;rate0;count0;
 |`rate2;count2;txpwr2`| 3rd MCS rate (`rate2`) chosen for probing or data frame with `count2` attempts/tries and `txpwr2` transmit power index.|
 |`rate3;count3;txpwr3`| 4th MCS rate (`rate3`) chosen for probing or data frame with `count3` attempts/tries and `txpwr3` transmit power index.|
 
-_Note: In the rate table containing upto four rates and corresponding counts, if a sequential rate-count-txpwr is not used, the rate and tx-power fields are denoted by `ffff`.
+_Note: In the rate table containing upto four rates and corresponding counts, if a sequential rate-count-txpwr is not used, the rate and tx-power fields are denoted by `ffff`._
 
 E.g. 1. Successful transmission on 1st MCS rate
 ```
