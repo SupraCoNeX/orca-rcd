@@ -1,6 +1,6 @@
 # Minstrel API + Minstrel-RCD
 
-**...provide a user-space API to perform fine-grained rate and tx power control for IEEE 8021.11 networks**
+**Provide a user-space API to perform fine-grained rate and tx power control for IEEE 802.11 networks**
 
 - [Minstrel API](#rate-control-api-aka-minstrel-api)
 - [Minstrel-RCD](#minstrel-rcd)
@@ -8,7 +8,7 @@
 
 ## Rate Control API (aka Minstrel API)
 
-The rate control API enables to access information and control parameters of kernel space rate-control from the user space. In addition to enabling monitoring of status information, the API allows to execute routines to perform rate setting based on a user space algorithm. The API is designed for WiFi systems running a Linux kernel in general. However, our testing only includes OpenWrt-based WiFi Systems.
+The rate control API enables to access information and control parameters of kernel space rate-control from the user space. In addition to enabling monitoring of status information, the API allows to execute routines to perform rate setting based on an algorithm implemented in user space. The API is designed for WiFi systems running a Linux kernel in general. However, our testing only includes OpenWrt-based WiFi Systems.
 
 Felix Fietkau is the maintainer of the API.
 
@@ -25,7 +25,7 @@ Based on OpenWrt Linux kernel patches and patchset to enable in OpenWrt that exp
 
 ### Interface
 
-The API provides a debugfs + relayfs based interface to pass information to and accept commands from user-space. This interface consists of three files which are created for each
+The API provides a debugfs + relayfs based interface to pass information to and accept commands from user space. This interface consists of three files which are created for each
 wifi device in `/sys/kernel/debug/ieee80211/<phy>/rc/`:
 |File|Technique|Purpose|
 |:---|:--------|:------|
@@ -317,5 +317,5 @@ Example: `phy1;0;add;ath9k;phy1-ap0;mrr;1;0,40,0,2`
 
 ### TPC in the Linux kernel
 
-Our TPC patches against the Linux kernel for fine-grained TPC propose to use indexed TX-power levels instead of absolute dBm values for annotating transmit power. This has several advantages, most notably better support for different capabilities. When a driver registers a new WiFi device at the mac80211 layer, it has to denote the type of TPC support and which power levels it supports. The specific power levels are specified by so-called tx-power ranges. A range describes a discrete, sequentially indexed set of power levels with a fixed value-distance. To support special capabilities like (0..10 dBm in 0.5 dBm steps) + (10..20 dBm in 1 dBm steps), drivers can specify multiple power ranges. Every tx-power value that is used for fine-grained TPC is always such a tx-power index pointing into the value set defined by those ranges.
+Our TPC patches against the Linux kernel for fine-grained TPC use indexed TX-power levels instead of absolute dBm values to annotate transmit power. This has several advantages, most notably better support for different capabilities. When a driver registers a new WiFi device at the mac80211 layer, it must specify the type of TPC support and the power levels it supports. The specific power levels are specified by so-called tx-power ranges. A range describes a discrete, sequentially indexed set of power levels with a fixed value-distance. To support special capabilities such as (0..10 dBm in 0.5 dBm steps) + (10..20 dBm in 1 dBm steps), drivers can specify multiple power ranges. Every tx-power value that is used for fine-grained TPC is always such a tx-power index pointing into the value set defined by those ranges.
 Although a valid tx-power index is always `>= 0`, a value of `-1` can be specified to give the decision about the tx-power to the driver. For example, ath9k uses the maximum allowed tx-power when `-1` is specified.
