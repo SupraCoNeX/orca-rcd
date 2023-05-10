@@ -167,53 +167,6 @@ static void phy_refresh_timer(struct uloop_timeout *t)
 	uloop_timeout_set(t, 1000);
 }
 
-static inline void
-newline_to_nt(char *str)
-{
-	char *nl = strchr(str, '\n');
-	if (nl)
-		*(nl) = '\0';
-}
-
-char *
-rcd_phy_read_tpc_support(struct phy *phy)
-{
-	FILE *f;
-	char *buf, *pos, *end;
-	char line[17] = {0}; /* max. 16 chars + null-terminator */
-	const size_t bufsz = 128;
-	unsigned int n_ranges = 0;
-
-	buf = malloc(bufsz);
-	if (!buf)
-		return NULL;
-
-	pos = buf;
-	end = pos + bufsz - 1;
-
-        f = fopen(phy_debugfs_file_path(phy, "tpc_support"), "r");
-        if (!f)
-		return NULL;
-	if (!fgets(line, sizeof(line), f))
-		return NULL;
-
-	newline_to_nt(line);
-	if (!sscanf(line, "%*[^;];%u", &n_ranges))
-		return NULL;
-
-	pos += snprintf(pos, end - pos, "%s", line);
-	if (!strncmp(buf, "not", 3))
-		return buf;
-
-	while (n_ranges && pos <= end && fgets(line, sizeof(line), f)) {
-		newline_to_nt(line);
-		pos += snprintf(pos, end - pos, ";%s", line);
-		n_ranges--;
-	}
-
-	return buf;
-}
-
 void rcd_phy_init_client(struct client *cl)
 {
 	struct phy *phy;
@@ -222,7 +175,7 @@ void rcd_phy_init_client(struct client *cl)
 		rcd_client_set_phy_state(cl, phy, true);
 }
 
-void rcd_phy_dump(struct client *cl, struct phy *phy)
+void rcd_api_info_dump(struct client *cl, struct phy *phy)
 {
 	char buf[512];
 	FILE *f;
@@ -247,6 +200,42 @@ void rcd_phy_dump(struct client *cl, struct phy *phy)
 		while (fgets(buf, sizeof(buf), f) != NULL)
 			client_printf(cl, "*;0;%s", buf);
 	}
+
+	fclose(f);
+}
+
+void rcd_phy_info(struct client *cl, struct phy *phy)
+{
+	char buf[128];
+	char caps[3][64] = { "NA", "NA", "NA" };
+	char *ty, *value;
+	FILE *f;
+
+	f = fopen(phy_file_path(phy, "api_phy"), "r");
+	if (!f)
+		return;
+
+	while (fgets(buf, sizeof(buf), f) != NULL) {
+		value = buf;
+		ty = strsep(&value, ";");
+
+		if (value)
+			value[ strlen(value) - 1 ] = '\0';
+                
+		if (!strncmp(ty, "drv", 3))
+			strncpy(caps[0], value, 64);
+		else if (!strncmp(ty, "if", 2))
+			strncpy(caps[1], value, 64);
+		else if (!strncmp(ty,  "rc_mode", 7))
+			strncpy(caps[2], value, 64);
+	}
+
+	if (cl->compression)
+		client_phy_printf_compressed(cl, phy, "0;add;%s;%s;%s\n",
+					     caps[0], caps[1], caps[2]);
+	else
+		client_phy_printf(cl, phy, "0;add;%s;%s;%s\n", caps[0],
+				  caps[1], caps[2]);
 
 	fclose(f);
 }
