@@ -29,14 +29,16 @@ The API provides a debugfs + relayfs based interface to pass information to and 
 wifi device in `/sys/kernel/debug/ieee80211/<phy>/rc/`:
 |File|Technique|Purpose|
 |:---|:--------|:------|
-|`api_info`|debugfs| |(Read-only) Upon read, prints static information about the API, like rate definitions, and per-phy information, including specific hardware capabilities, virtual interfaces, etc. Output is in CSV format.
+|`api_info`|debugfs|(Read-only) Upon read, prints static information about the API, like rate definitions, and per-phy information, including specific hardware capabilities, virtual interfaces, etc. Output is in CSV format.
 |`api_event`|relayfs|(Read-only) Continuously exposes monitoring information like txs and rxs traces, depending on what has been enabled before.|
 |`api_control`|debugfs|(Write-only) Upon write, a supported command is parsed and executed. The available commands are listed below.|
+|`api_phy`|debugfs|(Read-only) Exposes phy-specific information including driver name, ifaces, current RC mode and TPC capabilities.|
 
 ### API information
 
 Example output of `api_info`:
 ```
+*;0;version;1
 *;0;#group;index;offset;type;nss;bw;gi;airtime0;airtime1;airtime2;airtime3;airtime4;airtime5;airtime6;airtime7;airtime8;airtime9
 *;0;#sta;action;macaddr;overhead_mcs;overhead_legacy;mcs0;mcs1;mcs2;mcs3;mcs4;mcs5;mcs6;mcs7;mcs8;mcs9;mcs10;mcs11;mcs12;mcs13;mcs14;mcs15;mcs16;mcs17;mcs18;mcs19;mcs20;mcs21;mcs22;mcs23;mcs24;mcs25;mcs26;mcs27;mcs28;mcs29;mcs30;mcs31;mcs32;mcs33;mcs34;mcs35;mcs36;mcs37;mcs38;mcs39;mcs40;mcs41
 *;0;#txs;macaddr;num_frames;num_acked;probe;rate0;count0;rate1;count1;rate2;count2;rate3;count3
@@ -96,6 +98,16 @@ Example output of `api_info`:
 All lines starting with `*` describe global, mostly static information about Minstrel-HT and the API. In the beginning, lines are printed starting with `*;0;#` which should be considered as meta-information and denote the specific format for each output or command line that is used. After this, the global, static rate definitions of Minstrel-HT are printed.
 Minstrel-HT internally uses a rate representation that differs from the default MCS index + further parameters by separating all rates into groups with continuous indices.
 
+Example output of `api_phy`:
+```
+drv;ath9k
+if;wlan2
+rc_mode;auto
+tpc;mrr;1;0,40,0,2
+```
+
+Each line starts with an identifier that denotes the type of the information, followed by a ';' separator and the actual information.
+
 ### Commands
 
 Here, commands which are supported and can be run through `api_control`. All commands use the CSV format.   
@@ -103,16 +115,17 @@ Here, commands which are supported and can be run through `api_control`. All com
 
 |Function|Description|Kernel function|Command example|Additional information|
 |:------:|:----------|:--------------|---------------|----------------------|
-|dump    | Print out the supported data rate set for each client already connected - useful to separate tx_status packets that are supported by minstrel.|`minstrel_ht_dump_stations(mp)`|`phy0;dump`||
-|start   | Enable live print outs of tx statuses of connected STAs.|`minstrel_ht_api_set_active(mp, true)`|`phy0;start`||
-|start;txs   | Enable live print outs of tx statuses of connected STAs.|> ?|`phy0;start;txs`||
-|start;rxs  | Enable live print outs of RSSI of connected STAs.|> ?|`phy0;start;rxs`||
-|start;stats   |Enable live print outs of tx statuses of connected STAs.|> ?|`phy0;start;stats`||
-|stop    | Disable live print outs of tx statuses of connected STAs.|`minstrel_ht_api_set_active(mp, false)`|`phy0;stop`||
-|manual  | Disable minstrel-ht of kernel space and enable manual rate settings.|`minstrel_ht_api_set_manual(mp, true)`|`phy0;manual`||
-|auto    | Enable minstrel-ht of kernel space.|`minstrel_ht_api_set_manual(mp, false)`|`phy0;auto`||
-|rates   | Set rate table with given rates.|`minstrel_ht_set_rates(mp, mi, args[1], args[2], args[3])`|`phy0;{MAC address};{list of rate idxs};{num of counts for each rate};{list of tx-power idxs}`|`args[1]` = list of rates separated by `,`, `args[2]` = list of number of tries for a rate until choosing next rate, separated by `,` and `args[3]` = list of transmit power indices to be used for the MRR stages, separated by `,`.|
-|probe   | Set rate to be probed for specific STA|`minstrel_ht_set_probe_rate(mp, mi, args[1])`|`phy0;probe;{MAC address};{rate_idx}`|`args[1]` = list of rates supported by STA and AP|
+|`dump`    | Print out the supported data rate set for each client already connected - useful to separate tx_status packets that are supported by minstrel.|`minstrel_ht_dump_stations(mp)`|`phy0;dump`||
+|`start`   | Enable live print outs of tx statuses of connected STAs.|`minstrel_ht_api_set_active(mp, true)`|`phy0;start`||
+|`start;txs`   | Enable live print outs of tx statuses of connected STAs.|> ?|`phy0;start;txs`||
+|`start;rxs`  | Enable live print outs of RSSI of connected STAs.|> ?|`phy0;start;rxs`||
+|`start;stats`   |Enable live print outs of tx statuses of connected STAs.|> ?|`phy0;start;stats`||
+|`stop`    | Disable live print outs of tx statuses of connected STAs.|`minstrel_ht_api_set_active(mp, false)`|`phy0;stop`||
+|`manual`  | Disable minstrel-ht of kernel space and enable manual rate settings.|`minstrel_ht_api_set_manual(mp, true)`|`phy0;manual`||
+|`auto`    | Enable minstrel-ht of kernel space.|`minstrel_ht_api_set_manual(mp, false)`|`phy0;auto`||
+|`rc` or `rates` (deprecated)| Set rate table with given rates.|`minstrel_ht_set_rates(mp, mi, args[1], args[2], args[3])`|`phy0;{MAC address};{list of rate idxs};{num of counts for each rate};{list of tx-power idxs}`|`args[1]` = list of rates separated by `,`, `args[2]` = list of number of tries for a rate until choosing next rate, separated by `,` and `args[3]` = list of transmit power indices to be used for the MRR stages, separated by `,`.|
+|`probe`   | Set rate to be probed for specific STA|`minstrel_ht_set_probe_rate(mp, mi, args[1])`|`phy0;probe;{MAC address};{rate_idx}`|`args[1]` = list of rates supported by STA and AP|
+|`reset_stats`| Reset minstrel's internal statistics for a stations or all stations.|
 
 *Note: `mp` stands for an instance of the internal kernel structure minstrel_priv which is created per phy. `mi` stands for the internal kernel structure minstrel_ht_sta which is created per station (MAC address). Thus, functions are executed per phy/per station.*
 
@@ -255,7 +268,7 @@ Upon establishing a TCP/IP connection with the rate control API in T2, you can u
     
   3. Set desired MCS rate using the command format:
   ```
-  phy1;rates;<macaddr>;<rates>;<counts>;<txpower>
+  phy1;rc;<macaddr>;<rates>;<counts>;<txpower>
   ```    
   Actual rate setting is done using the `rates` argument in the second position. Note that the `rates` to be set must be the HEX version of the rate `idx` found in the `rc_stats` table.
      
@@ -300,9 +313,9 @@ In this subsection, we provide a list of steps to remotely communicate with the 
 
 Upon establishing a connection to Minstrel-RCD, the `api_info` is read and printed. Minstrel-RCD reads this for one WiFi device and adds further lines for each WiFi device, containing additional, radio-specific information like interfaces, driver name and TPC capabilities. The information is currently collected from various debugfs files. These lines look like the following:
 ```
-<phy>;<ts>;<type>;<driver>;<vifs>;<tpc_type>;<tpc_ranges>;<tpc_range_block>
+<phy>;<ts>;<type>;<driver>;<vifs>;<rc_mode>;<tpc_type>;<tpc_ranges>;<tpc_range_block>
 ```
-Example: `phy1;0;add;ath9k;phy1-ap0;mrr;1;0,40,0,2`
+Example: `phy1;0;add;ath9k;phy1-ap0;auto;mrr;1;0,40,0,2`
 
 |Field|Explanation|
 |:----|:----------|
@@ -311,7 +324,8 @@ Example: `phy1;0;add;ath9k;phy1-ap0;mrr;1;0,40,0,2`
 |`<type>`|Denotes that a WiFi device action occured. When connecting to Minstrel-RCD, WiFi devices are always added, thus this will be `add`|
 |`<driver>`|Name of the driver that is assigned to the WiFi device.|
 |`<vifs>`|List of virtual interfaces assigned to the WiFi device, separated by `;`.|
-|`<tpc_type>`, `pkt` or `mrr`|`not`, `pkt` or `mrr`. Denotes the type of TPC support, respectively 'no support', 'tpc per packet' or 'tpc per mrr stage'.|
+|`<rc_mode>`|The current Minstrel RC mode, either `manual` or `auto`|
+|`<tpc_type>`|`not`, `pkt` or `mrr`. Denotes the type of TPC support, respectively 'no support', 'tpc per packet' or 'tpc per mrr stage'.|
 |`<tpc_ranges>`|Number of following TPC range blocks.|
 |`<tpc_range_block>`|One or multiple range blocks describing the different TPC power ranges that are supported. A range consists of the four values `start_idx`, `n_levels`, `start_pwr` and `pwr_step` (all HEX), separated by `,`. Example: `0,40,0,2` describes a power range starting at idx 0 with 64 levels, the power level at idx 0 corresponds to (0 * 0.25) dBm and the range has a step width of (2 * 0.25 = 0.5) dBm.|
 
