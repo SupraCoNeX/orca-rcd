@@ -8,66 +8,24 @@
 static LIST_HEAD(clients);
 static LIST_HEAD(zclients);
 
-static char *
-phy_interfaces(struct phy *phy)
-{
-	glob_t gl;
-	char globstr[64], *ifname, *ifaces = NULL;
-	size_t len, ifname_ofs, ofs = 0;
-	unsigned int i;
+int client_printf_compressed(struct client *cl, const char *fmt, ...) {
+        void *compressed;
+        size_t clen;
+        int error;
+        va_list va_args;
 
-	len = snprintf(globstr, sizeof(globstr), "/sys/kernel/debug/ieee80211/%s/netdev:*", phy_name(phy));
-	if (len >= sizeof(globstr))
-		return NULL;
+        va_start(va_args, fmt);
 
-	ifname_ofs = strchr(globstr, ':') - globstr + 1;
+        error = zstd_fmt_compress_va(&compressed, &clen, fmt, va_args);
+        if (error)
+                goto out;
 
-	glob(globstr, 0, NULL, &gl);
-
-	if (gl.gl_pathc == 0)
-		goto done;
-
-	ifaces = calloc(IF_NAMESIZE, gl.gl_pathc);
-	if (!ifaces)
-		goto done;
-
-	for (i = 0; i < gl.gl_pathc; i++) {
-		ifname = gl.gl_pathv[i] + ifname_ofs;
-		len = strlen(ifname);
-		strncpy(ifaces + ofs, ifname, len);
-
-		if (i == gl.gl_pathc - 1)
-			break;
-
-		ifaces[ofs + len] = ',';
-		ofs += len + 1;
-	}
-
-done:
-	globfree(&gl);
-	return ifaces;
-}
-
-static const char *
-phy_driver(struct phy *phy)
-{
-	static char driver[16];
-	char path[64], buf[64];
-	size_t len;
-	ssize_t n_written;
-
-	len = snprintf(path, sizeof(path), "/sys/class/ieee80211/%s/device/driver", phy_name(phy));
-	if (len >= sizeof(path))
-		return NULL;
-
-	n_written = readlink(path, buf, sizeof(buf));
-	if (n_written == sizeof(buf))
-		return NULL;
-
-	buf[n_written] = '\0';
-	strncpy(driver, basename(buf), sizeof(driver));
-
-	return driver;
+        client_write(cl, compressed, clen);
+        free(compressed);
+        error = 0;
+out:
+        va_end(va_args);
+        return error;
 }
 
 void rcd_client_phy_event(struct phy *phy, const char *str)
@@ -109,35 +67,8 @@ out:
 	va_end(va_args);
 }
 
-static void
-set_phy_state_compressed(struct client *cl, struct phy *phy, bool add)
-{
-	char str[64];
-	char buf[128]; /* upper bound on compressed size for 16 bytes is 79 */
-	size_t clen;
-	int error;
-	char *tpc, *ifaces = phy_interfaces(phy);
-	if (!ifaces)
-		return;
-
-	tpc = rcd_phy_read_tpc_support(phy);
-	snprintf(str, sizeof(str), "%s;0;%s;%s;%s;%s\n", phy_name(phy),
-		 add ? "add" : "remove", phy_driver(phy), ifaces,
-		 tpc ? tpc : "ERR");
-
-	error = zstd_compress_into(buf, sizeof(buf), str, strlen(str), &clen);
-	free(ifaces);
-	free(tpc);
-	if (error)
-		return;
-
-	client_write(cl, buf, clen);
-}
-
 void rcd_client_set_phy_state(struct client *cl, struct phy *phy, bool add)
 {
-	char *ifaces, *tpc;
-
 	if (!cl) {
 		list_for_each_entry(cl, &clients, list)
 			rcd_client_set_phy_state(cl, phy, add);
@@ -147,23 +78,17 @@ void rcd_client_set_phy_state(struct client *cl, struct phy *phy, bool add)
 		return;
 	}
 
-	if (add && !cl->init_done) {
-		rcd_phy_dump(cl, phy);
-		cl->init_done = true;
-	}
+	if (add) {
+		if (!cl->init_done) {
+			rcd_api_info_dump(cl, phy);
+			cl->init_done = true;
+		}
 
-	if (cl->compression) {
-		set_phy_state_compressed(cl, phy, add);
+		rcd_phy_info(cl, phy);
+	} else if (cl->compression) {
+		client_phy_printf_compressed(cl, phy, "0;remove\n");
 	} else {
-		ifaces = phy_interfaces(phy);
-		if (!ifaces)
-			return;
-
-		tpc = rcd_phy_read_tpc_support(phy);
-		client_phy_printf(cl, phy, "0;%s;%s;%s;%s\n", add ? "add" : "remove",
-		                  phy_driver(phy), ifaces, tpc ? tpc : "ERR");
-		free(ifaces);
-		free(tpc);
+		client_phy_printf(cl, phy, "0;remove\n");
 	}
 }
 

@@ -100,23 +100,21 @@ void rcd_client_broadcast(const char *fmt, ...);
 void rcd_client_phy_event(struct phy *phy, const char *str);
 void rcd_client_set_phy_state(struct client *cl, struct phy *phy, bool add);
 
+void rcd_api_info_dump(struct client *cl, struct phy *phy);
+
 void rcd_phy_init(void);
 void rcd_phy_init_client(struct client *cl);
-void rcd_phy_dump(struct client *cl, struct phy *phy);
+void rcd_phy_info(struct client *cl, struct phy *phy);
 void rcd_phy_control(struct client *cl, char *data);
-
-/**
- * char *rcd_phy_read_tpc_support
- *
- * Returns: pointer to heap-allocated str buffer. Must be freed by caller
- * 	after it has been used (printing to output, etc.).
- */
-char *rcd_phy_read_tpc_support(struct phy *phy);
 
 #define client_printf(cl, ...) ustream_printf(&(cl)->sfd.stream, __VA_ARGS__)
 #define client_vprintf(cl, fmt, va_args) ustream_vprintf(&(cl)->sfd.stream, fmt, va_args)
 #define client_phy_printf(cl, phy, fmt, ...) client_printf(cl, "%s;" fmt, phy_name(phy), ## __VA_ARGS__)
 #define client_write(cl, buf, len) ustream_write(&(cl)->sfd.stream, buf, len, false)
+
+int client_printf_compressed(struct client *cl, const char *fmt, ...);
+
+#define client_phy_printf_compressed(cl, phy, fmt, ...) client_printf_compressed(cl, "%s;" fmt, phy_name(phy), ## __VA_ARGS__)
 
 bool rcd_has_clients(bool compression);
 
