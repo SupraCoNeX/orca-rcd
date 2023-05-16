@@ -107,7 +107,7 @@ zstd_fmt_compress_va(void **buf, size_t *buflen, const char *fmt, va_list va_arg
 		}
 	} while (0);
 
-	error = zstd_compress(str, strlen(str) + 1, buf, buflen);
+	error = zstd_compress(str, strlen(str), buf, buflen);
 	free(str);
 
 	return error;
