@@ -207,7 +207,7 @@ void rcd_api_info_dump(struct client *cl, struct phy *phy)
 void rcd_phy_info(struct client *cl, struct phy *phy)
 {
 	char buf[128];
-	char caps[4][64] = { "NA", "NA", "NA", "NA" };
+	char caps[4][64] = { "", "", "", "" };
 	char *ty, *value;
 	FILE *f;
 
