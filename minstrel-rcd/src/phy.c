@@ -207,7 +207,7 @@ void rcd_api_info_dump(struct client *cl, struct phy *phy)
 void rcd_phy_info(struct client *cl, struct phy *phy)
 {
 	char buf[128];
-	char caps[4][64] = { "", "", "", "" };
+	char caps[3][64] = { "", "", "" };
 	char *ty, *value;
 	FILE *f;
 
@@ -226,19 +226,16 @@ void rcd_phy_info(struct client *cl, struct phy *phy)
 			strncpy(caps[0], value, 64);
 		else if (!strncmp(ty, "if", 2))
 			strncpy(caps[1], value, 64);
-		else if (!strncmp(ty,  "rc_mode", 7))
-			strncpy(caps[2], value, 64);
 		else if (!strncmp(ty, "tpc", 3))
-			strncpy(caps[3], value, 64);
+			strncpy(caps[2], value, 64);
 	}
 
 	if (cl->compression)
-		client_phy_printf_compressed(cl, phy, "0;add;%s;%s;%s;%s\n",
-					     caps[0], caps[1], caps[2],
-					     caps[3]);
+		client_phy_printf_compressed(cl, phy, "0;add;%s;%s;%s\n",
+					     caps[0], caps[1], caps[2]);
 	else
-		client_phy_printf(cl, phy, "0;add;%s;%s;%s;%s\n", caps[0],
-				  caps[1], caps[2], caps[3]);
+		client_phy_printf(cl, phy, "0;add;%s;%s;%s\n", caps[0],
+				  caps[1], caps[2]);
 
 	fclose(f);
 }
