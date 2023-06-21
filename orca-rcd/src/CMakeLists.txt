@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 2.6)
 
-PROJECT(minstrel-rcd C)
+PROJECT(orca-rcd C)
 
 SET(SOURCES main.c phy.c server.c client.c config.c)
 
@@ -38,9 +38,9 @@ IF(DEFINED CMAKE_CONFIG_ZSTD)
 	ADD_DEFINITIONS(-DCONFIG_ZSTD)
 ENDIF(DEFINED CMAKE_CONFIG_ZSTD)
 
-ADD_EXECUTABLE(minstrel-rcd ${SOURCES})
-TARGET_LINK_LIBRARIES(minstrel-rcd ${LIBS})
+ADD_EXECUTABLE(orca-rcd ${SOURCES})
+TARGET_LINK_LIBRARIES(orca-rcd ${LIBS})
 
-INSTALL(TARGETS minstrel-rcd
+INSTALL(TARGETS orca-rcd
 	RUNTIME DESTINATION sbin
 )

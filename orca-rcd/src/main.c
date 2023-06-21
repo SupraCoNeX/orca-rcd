@@ -9,7 +9,7 @@ const char *config_path = NULL; /* use the default set in libuci */
 static void
 usage(void)
 {
-	fprintf(stderr, "usage: minstrel-rcd [-h INTERFACE]");
+	fprintf(stderr, "usage: orca-rcd [-h INTERFACE]");
 #ifdef CONFIG_MQTT
 	fprintf(stderr, " [-i ID] [-t TOPIC_PREFIX] [-b BROKER]");
 #endif
@@ -29,7 +29,7 @@ usage(void)
 
 #ifdef CONFIG_ZSTD
 	fprintf(stderr, "zstd compression options: [-D DICT] [-c COMPRESSIONLEVEL] [-B BUFSIZE] [-T TIMEOUT_MS]\n"
-			"	DICT is the path to a zstd dictionary file (default /lib/minstrel-rcd/dictionary/zdict)\n"
+			"	DICT is the path to a zstd dictionary file (default /lib/orca-rcd/dictionary/zdict)\n"
 			"	COMPRESSIONLEVEL sets the zstd compression level (default 3)\n"
 			"	BUFSIZE sets the size of the buffer where data is collected before compression (default 4096)\n"
 			"	TIMEOUT_MS sets the maximum wait time in milliseconds between flushes of the compression buffer (default 1000).\n");

@@ -3,14 +3,14 @@
 
 START=99
 USE_PROCD=1
-PROG=/usr/sbin/minstrel-rcd
+PROG=/usr/sbin/orca-rcd
 
 service_triggers() {
-	procd_add_reload_trigger "minstrel-rcd"
+	procd_add_reload_trigger "orca-rcd"
 }
 
 validate_rcd_section() {
-	uci_load_validate minstrel-rcd rcd "$1" "$2" \
+	uci_load_validate orca-rcd rcd "$1" "$2" \
 		'listen:list(host)' 'enabled:bool:1'
 }
 

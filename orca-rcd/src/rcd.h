@@ -143,7 +143,7 @@ struct zstd_opts {
 };
 
 #define ZSTD_OPTS_DEFAULTS {\
-	.dict = "/lib/minstrel-rcd/dictionary.zdict",\
+	.dict = "/lib/orca-rcd/dictionary.zdict",\
 	.comp_level = 3,\
 	.bufsize = 4096,\
 	.timeout_ms = 1000,\

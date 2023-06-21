@@ -132,7 +132,7 @@ rcd_config_init(void)
 {
 	char *errstr;
 
-	config = config_init_package("minstrel-rcd");
+	config = config_init_package("orca-rcd");
 	if (!config && uci_ctx->err != UCI_ERR_NOTFOUND) {
 		uci_get_errorstr(uci_ctx, &errstr, NULL);
 		fprintf(stderr, "ERROR: Failed to load config: %s\n", errstr);
