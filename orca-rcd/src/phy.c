@@ -208,14 +208,19 @@ void rcd_phy_info(struct client *cl, struct phy *phy)
 {
 	char buf[128];
 	char caps[3][64] = { "", "", "" };
-	char *ty, *value;
+	char *ty, *value, *res;
 	FILE *f;
 
 	f = fopen(phy_file_path(phy, "api_phy"), "r");
 	if (!f)
 		return;
 
-	while (fgets(buf, sizeof(buf), f) != NULL) {
+	/* 
+	 * need to stop when we encounter the first sta line. We want to 
+	 * print the phy;add line before and then continue with the sta lines.
+	 * the API should ensure that there are no other lines after sta lines.
+	 */
+	while ((res = fgets(buf, sizeof(buf), f)) != NULL && strncmp(buf, "sta", 3)) {
 		value = buf;
 		ty = strsep(&value, ";");
 
@@ -234,9 +239,25 @@ void rcd_phy_info(struct client *cl, struct phy *phy)
 		client_phy_printf_compressed(cl, phy, "0;add;%s;%s;%s\n",
 					     caps[0], caps[1], caps[2]);
 	else
-		client_phy_printf(cl, phy, "0;add;%s;%s;%s\n", caps[0],
-				  caps[1], caps[2]);
+		client_phy_printf(cl, phy, "0;add;%s;%s;%s\n", caps[0], caps[1], caps[2]);
 
+	if (!res)
+		goto out;
+
+	do {
+		value = buf;
+		ty = strsep(&value, ";");
+
+		if (strncmp(buf, "sta", 3))
+			continue;
+
+		if (cl->compression)
+			client_phy_printf_compressed(cl, phy, "0;sta;add;%s\n", value);
+		else
+			client_phy_printf(cl, phy, "0;sta;add;%s\n", value);
+	} while (fgets(buf, sizeof(buf), f) != NULL);
+
+out:
 	fclose(f);
 }
 
