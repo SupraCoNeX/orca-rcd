@@ -206,7 +206,7 @@ void rcd_api_info_dump(struct client *cl, struct phy *phy)
 
 void rcd_phy_info(struct client *cl, struct phy *phy)
 {
-	char buf[128];
+	char buf[256];
 	char caps[3][64] = { "", "", "" };
 	char *ty, *value, *res;
 	FILE *f;
