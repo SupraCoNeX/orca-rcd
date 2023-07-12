@@ -251,10 +251,11 @@ void rcd_phy_info(struct client *cl, struct phy *phy)
 		if (strncmp(buf, "sta", 3))
 			continue;
 
+		/* Newline character is included so print without an additional one */
 		if (cl->compression)
-			client_phy_printf_compressed(cl, phy, "0;sta;add;%s\n", value);
+			client_phy_printf_compressed(cl, phy, "0;sta;add;%s", value);
 		else
-			client_phy_printf(cl, phy, "0;sta;add;%s\n", value);
+			client_phy_printf(cl, phy, "0;sta;add;%s", value);
 	} while (fgets(buf, sizeof(buf), f) != NULL);
 
 out:
