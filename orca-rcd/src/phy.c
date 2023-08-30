@@ -18,7 +18,7 @@ phy_file_path(struct phy *phy, const char *file)
 {
 	static char path[64];
 
-	snprintf(path, sizeof(path), "/sys/kernel/debug/ieee80211/%s/rc/%s", phy_name(phy), file);
+	snprintf(path, sizeof(path), "/sys/kernel/debug/ieee80211/%s/orca/%s", phy_name(phy), file);
 
 	return path;
 }
