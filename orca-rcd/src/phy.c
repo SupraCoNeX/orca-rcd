@@ -207,7 +207,7 @@ void rcd_api_info_dump(struct client *cl, struct phy *phy)
 void rcd_phy_info(struct client *cl, struct phy *phy)
 {
 	char buf[256];
-	char caps[6][128] = { "", "", "", "", "", "" };
+	char caps[7][128] = { "", "", "", "", "", "", "" };
 	char *ty, *value, *res;
 	FILE *f;
 	int idx, max_len = 128;
@@ -228,18 +228,20 @@ void rcd_phy_info(struct client *cl, struct phy *phy)
 		if (value)
 			value[ strlen(value) - 1 ] = '\0';
                 
-		if (!strncmp(ty, "drv", 3))
+		if (!strncmp(ty, "rc", 2))
 			idx = 0;
-		else if (!strncmp(ty, "if", 2))
+		else if (!strncmp(ty, "drv", 3))
 			idx = 1;
-		else if (!strncmp(ty, "mon", 3))
+		else if (!strncmp(ty, "if", 2))
 			idx = 2;
-		else if (!strncmp(ty, "tpc", 3))
+		else if (!strncmp(ty, "mon", 3))
 			idx = 3;
-		else if (!strncmp(ty, "ftrs", 4))
+		else if (!strncmp(ty, "tpc", 3))
 			idx = 4;
-		else if (!strncmp(ty, "pwr_limit", 9))
+		else if (!strncmp(ty, "ftrs", 4))
 			idx = 5;
+		else if (!strncmp(ty, "pwr_limit", 9))
+			idx = 6;
 		else
 			continue;
 
@@ -247,12 +249,13 @@ void rcd_phy_info(struct client *cl, struct phy *phy)
 	}
 
 	if (cl->compression)
-		client_phy_printf_compressed(cl, phy, "0;add;%s;%s;%s;%s;%s;%s\n",
-					     caps[0], caps[1], caps[2], caps[4],
-					     caps[3], caps[5]);
+		client_phy_printf_compressed(cl, phy, "0;add;%s;%s;%s;%s;%s;%s;%s\n",
+					     caps[0], caps[1], caps[2], caps[3],
+					     caps[5], caps[4], caps[6]);
 	else
-		client_phy_printf(cl, phy, "0;add;%s;%s;%s;%s;%s;%s\n", caps[0],
-				  caps[1], caps[2], caps[4], caps[3], caps[5]);
+		client_phy_printf(cl, phy, "0;add;%s;%s;%s;%s;%s;%s;%s\n",
+				  caps[0], caps[1], caps[2], caps[3], caps[5],
+				  caps[4], caps[6]);
 
 	if (!res)
 		goto out;
