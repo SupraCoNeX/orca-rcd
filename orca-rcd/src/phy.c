@@ -195,7 +195,7 @@ void rcd_api_info_dump(struct client *cl, struct phy *phy)
 void rcd_phy_info(struct client *cl, struct phy *phy)
 {
 	char buf[256];
-	char caps[4][128] = { "", "", "", "" };
+	char caps[5][128] = { "", "", "", "" };
 	char *type, *value, *res;
 	FILE *f;
 	int idx, max_len = 128;
@@ -220,22 +220,24 @@ void rcd_phy_info(struct client *cl, struct phy *phy)
 		if (value)
 			value[ strlen(value) - 1 ] = 0;
 
-		if (!strcmp(type, "drv"))
+		if (!strcmp(type, "rc"))
 			idx = 0;
-		else if (!strcmp(type, "tpc"))
+		else if (!strcmp(type, "drv"))
 			idx = 1;
-		else if (!strcmp(type, "ftrs"))
+		else if (!strcmp(type, "tpc"))
 			idx = 2;
-		else if (!strcmp(type, "pwr_limit"))
+		else if (!strcmp(type, "ftrs"))
 			idx = 3;
+		else if (!strcmp(type, "pwr_limit"))
+			idx = 4;
 		else
 			continue;
 
 		strncpy(caps[idx], value, max_len);
 	}
 
-	client_phy_printf(cl, phy, "0;add;%s;%s;%s;%s\n", caps[0],
-			  caps[2], caps[1], caps[3]);
+	client_phy_printf(cl, phy, "0;add;%s;%s;%s;%s;%s\n", caps[0],
+			  caps[1], caps[3], caps[2], caps[4]);
 
 	if (!res)
 		goto out;
