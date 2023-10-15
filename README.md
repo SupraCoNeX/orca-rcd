@@ -53,7 +53,7 @@ phy0;set_rates_power;aa:bb:cc:dd:ee:ff;d7,4,a;d2,4,c;c1,4,1f
 
 Upon establishing a connection to ORCA-RCD, the `api_info` is read and printed. However, this static output only contains global information and thus, `orca-rcd` reads this for only one WiFi device. After this, `orca-rcd` reads `api_phy` for each PHY and passes the contained information in a condensed format to its clients. The format syntax is as follows:
 ```
-<phy>;<timestamp>;<type>;<driver>;<vifs>;<tpc_caps>
+<phy>;<timestamp>;<type>;<driver>;<vifs>;<active_mon>;<num_ftrs>;<ftrs>;<tpc_caps>;<max_tpc>
 ```
 Example: `phy1;0;add;ath9k;phy1-ap0,phy1-sta0;mrr;1;0,40,0,2`
 
@@ -64,7 +64,11 @@ Example: `phy1;0;add;ath9k;phy1-ap0,phy1-sta0;mrr;1;0,40,0,2`
 |`<type>`|Denotes that a WiFi device action occured. When connecting to ORCA-RCD, WiFi devices are always added, thus this will be `add`|
 |`<driver>`|Name of the driver that is assigned to the WiFi device.|
 |`<vifs>`|List of virtual interfaces assigned to the WiFi device, separated by `;`.|
-|`<tpc_caps>`| TPC capabilities as described in [`api_phy` output](#api_phy---phy-specific-api-info) |
+|`<active_mon>`| Comma-separated list of active monitor modes. |
+|`<num_ftrs>`| Number of following feature blocks. |
+|`<ftrs>`| `<num_ftrs>` feature blocks showing the supported features and their current states. Each feature block has the format `<ftr>,<state>` where `ftr` is the feature identifier and `state` the numeric state of the feature.|
+|`<tpc_caps>`| TPC capabilities as described in [ORCA `api_phy` output](https://github.com/SupraCoNeX/orca#api_phy---phy-specific-api-info) |
+|`<max_tpc>`| The maximum power index (refering to `tpc_caps`) that can be set via the TPC feature. |
 
 ## How to setup a connection to `orca-rcd`?
 
