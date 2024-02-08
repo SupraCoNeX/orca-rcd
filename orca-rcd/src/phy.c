@@ -179,27 +179,13 @@ void rcd_api_info_dump(struct client *cl, struct phy *phy)
 {
 	char buf[512];
 	FILE *f;
-	void *compressed;
-	size_t clen;
-	int error;
 
 	f = fopen(phy_file_path(phy, "api_info"), "r");
 	if (!f)
 		return;
 
-	if (cl->compression) {
-		while (fgets(buf, sizeof(buf), f) != NULL) {
-			error = zstd_fmt_compress(&compressed, &clen, "*;0;%s", buf);
-			if (error)
-				break;
-
-			client_write(cl, compressed, clen);
-			free(compressed);
-		}
-	} else {
-		while (fgets(buf, sizeof(buf), f) != NULL)
-			client_printf(cl, "*;0;%s", buf);
-	}
+	while (fgets(buf, sizeof(buf), f) != NULL)
+		client_printf(cl, "*;0;%s", buf);
 
 	fclose(f);
 }
@@ -227,7 +213,7 @@ void rcd_phy_info(struct client *cl, struct phy *phy)
 
 		if (value)
 			value[ strlen(value) - 1 ] = '\0';
-                
+
 		if (!strncmp(ty, "drv", 3))
 			idx = 0;
 		else if (!strncmp(ty, "if", 2))
@@ -246,12 +232,7 @@ void rcd_phy_info(struct client *cl, struct phy *phy)
 		strncpy(caps[idx], value, max_len);
 	}
 
-	if (cl->compression)
-		client_phy_printf_compressed(cl, phy, "0;add;%s;%s;%s;%s;%s;%s\n",
-					     caps[0], caps[1], caps[2], caps[4],
-					     caps[3], caps[5]);
-	else
-		client_phy_printf(cl, phy, "0;add;%s;%s;%s;%s;%s;%s\n", caps[0],
+	client_phy_printf(cl, phy, "0;add;%s;%s;%s;%s;%s;%s\n", caps[0],
 				  caps[1], caps[2], caps[4], caps[3], caps[5]);
 
 	if (!res)
@@ -264,11 +245,8 @@ void rcd_phy_info(struct client *cl, struct phy *phy)
 		if (strncmp(buf, "sta", 3))
 			continue;
 
-		/* Newline character is included so print without an additional one */
-		if (cl->compression)
-			client_phy_printf_compressed(cl, phy, "0;sta;add;%s", value);
-		else
-			client_phy_printf(cl, phy, "0;sta;add;%s", value);
+		/* Newline character is included so no additional one */
+		client_phy_printf(cl, phy, "0;sta;add;%s", value);
 	} while (fgets(buf, sizeof(buf), f) != NULL);
 
 out:
@@ -311,8 +289,6 @@ phy_debugfs_read(struct client *cl, struct phy *phy, const char *file)
 {
 	char *buf, *cur;
 	int fd, len, err = 0, offset = 0, bufsiz = 512;
-	void *cbuf;
-	size_t clen;
 
 	fd = open(phy_debugfs_file_path(phy, file), O_RDONLY);
 	if (fd < 0)
@@ -359,20 +335,7 @@ done:
 		if (*cur == '\n')
 			*cur = ',';
 
-	if (cl->compression) {
-		err = zstd_fmt_compress(&cbuf, &clen, "%s;0;debugfs;%s;%s\n",
-		                        phy_name(phy), file, buf);
-		if (err) {
-			free(buf);
-			goto error;
-		}
-
-		client_write(cl, cbuf, clen);
-		free(cbuf);
-	} else {
-		client_phy_printf(cl, phy, "0;debugfs;%s;%s\n", file, buf);
-	}
-
+	client_phy_printf(cl, phy, "0;debugfs;%s;%s\n", file, buf);
 	free(buf);
 error:
 	close(fd);
@@ -474,8 +437,6 @@ void rcd_phy_control(struct client *cl, char *data)
 	struct phy *phy = NULL;
 	const char *err = "Syntax error";
 	char *sep, *cmd, *path;
-	void *buf;
-	size_t clen;
 	int error = 0;
 	bool wildcard;
 
@@ -536,15 +497,7 @@ void rcd_phy_control(struct client *cl, char *data)
 	return;
 
 error:
-	if (cl->compression) {
-		error = zstd_fmt_compress(&buf, &clen, "*;0;#error;%s\n", err);
-		if (error)
-			return;
-		client_write(cl, buf, clen);
-		free(buf);
-	} else {
-		client_printf(cl, "*;0;#error;%s\n", err);
-	}
+	client_printf(cl, "*;0;#error;%s\n", err);
 }
 
 void rcd_phy_init(void)

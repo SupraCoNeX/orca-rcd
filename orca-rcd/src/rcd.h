@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0
 /* Copyright (C) 2021 Felix Fietkau <nbd@nbd.name> */
+/* Copyright (C) 2021-2024 SupraCoNeX Team <supraconex@gmail.com> */
 #ifndef __MINSTREL_RCD_H
 #define __MINSTREL_RCD_H
 
@@ -107,14 +108,13 @@ void rcd_phy_init_client(struct client *cl);
 void rcd_phy_info(struct client *cl, struct phy *phy);
 void rcd_phy_control(struct client *cl, char *data);
 
-#define client_printf(cl, ...) ustream_printf(&(cl)->sfd.stream, __VA_ARGS__)
-#define client_vprintf(cl, fmt, va_args) ustream_vprintf(&(cl)->sfd.stream, fmt, va_args)
+#define client_raw_printf(cl, ...) ustream_printf(&(cl)->sfd.stream, __VA_ARGS__)
 #define client_phy_printf(cl, phy, fmt, ...) client_printf(cl, "%s;" fmt, phy_name(phy), ## __VA_ARGS__)
 #define client_write(cl, buf, len) ustream_write(&(cl)->sfd.stream, buf, len, false)
 
-int client_printf_compressed(struct client *cl, const char *fmt, ...);
-
-#define client_phy_printf_compressed(cl, phy, fmt, ...) client_printf_compressed(cl, "%s;" fmt, phy_name(phy), ## __VA_ARGS__)
+int client_vprintf_compressed(struct client *cl, const char *fmt, va_list va_args);
+int client_vprintf(struct client *cl, const char *fmt, va_list va_args);
+int client_printf(struct client *cl, const char *fmt, ...);
 
 bool rcd_has_clients(bool compression);
 

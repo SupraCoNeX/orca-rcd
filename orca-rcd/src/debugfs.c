@@ -133,7 +133,7 @@ mon_event_read_buf(struct mon_context *ctx, char *buf)
 			zstd_read_fmt(&ctx->buf, "%s\n", cur);
 		else
 			list_for_each_entry(cl, &ctx->clients, list)
-				client_printf(cl, "%s\n", buf);
+				client_raw_printf(cl, "%s\n", buf);
 	}
 
 	len = strlen(cur);

@@ -8,24 +8,40 @@
 static LIST_HEAD(clients);
 static LIST_HEAD(zclients);
 
-int client_printf_compressed(struct client *cl, const char *fmt, ...) {
-        void *compressed;
-        size_t clen;
-        int error;
-        va_list va_args;
+int client_vprintf_compressed(struct client *cl, const char *fmt, va_list va_args) {
+	void *compressed;
+	size_t clen;
+	int error;
 
-        va_start(va_args, fmt);
+	error = zstd_fmt_compress_va(&compressed, &clen, fmt, va_args);
+	if (error)
+		return error;
 
-        error = zstd_fmt_compress_va(&compressed, &clen, fmt, va_args);
-        if (error)
-                goto out;
+	client_write(cl, compressed, clen);
+	free(compressed);
+	return 0;
+}
 
-        client_write(cl, compressed, clen);
-        free(compressed);
-        error = 0;
-out:
-        va_end(va_args);
-        return error;
+int client_vprintf(struct client *cl, const char *fmt, va_list va_args) {
+	int res = 0;
+
+	if (cl->compression)
+		res = client_vprintf_compressed(cl, fmt, va_args);
+	else
+		ustream_vprintf(&(cl)->sfd.stream, fmt, va_args);
+
+	return res;
+}
+
+int client_printf(struct client *cl, const char *fmt, ...) {
+	va_list va_args;
+	int res;
+
+	va_start(va_args, fmt);
+	res = client_vprintf(cl, fmt, va_args);
+	va_end(va_args);
+
+	return res;
 }
 
 void rcd_client_phy_event(struct phy *phy, const char *str)
@@ -43,10 +59,10 @@ void rcd_client_phy_event(struct phy *phy, const char *str)
 void rcd_client_broadcast(const char *fmt, ...)
 {
 	struct client *cl;
+	va_list va_args;
 	void *buf;
 	size_t len;
 	int err;
-	va_list va_args;
 
 	va_start(va_args, fmt);
 
@@ -63,6 +79,7 @@ void rcd_client_broadcast(const char *fmt, ...)
 
 		free(buf);
 	}
+
 out:
 	va_end(va_args);
 }
@@ -85,8 +102,6 @@ void rcd_client_set_phy_state(struct client *cl, struct phy *phy, bool add)
 		}
 
 		rcd_phy_info(cl, phy);
-	} else if (cl->compression) {
-		client_phy_printf_compressed(cl, phy, "0;remove\n");
 	} else {
 		client_phy_printf(cl, phy, "0;remove\n");
 	}
