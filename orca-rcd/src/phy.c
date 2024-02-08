@@ -202,29 +202,29 @@ void rcd_phy_info(struct client *cl, struct phy *phy)
 	if (!f)
 		return;
 
-	/* 
+	/*
 	 * need to stop when we encounter the first sta line. We want to 
 	 * print the phy;add line before and then continue with the sta lines.
 	 * the API should ensure that there are no other lines after sta lines.
 	 */
-	while ((res = fgets(buf, sizeof(buf), f)) != NULL && strncmp(buf, "sta", 3)) {
+	while ((res = fgets(buf, sizeof(buf), f)) != NULL && strcmp(buf, "sta")) {
 		value = buf;
 		ty = strsep(&value, ";");
 
 		if (value)
 			value[ strlen(value) - 1 ] = '\0';
 
-		if (!strncmp(ty, "drv", 3))
+		if (!strcmp(ty, "drv"))
 			idx = 0;
-		else if (!strncmp(ty, "if", 2))
+		else if (!strcmp(ty, "if"))
 			idx = 1;
-		else if (!strncmp(ty, "mon", 3))
+		else if (!strcmp(ty, "mon"))
 			idx = 2;
-		else if (!strncmp(ty, "tpc", 3))
+		else if (!strcmp(ty, "tpc"))
 			idx = 3;
-		else if (!strncmp(ty, "ftrs", 4))
+		else if (!strcmp(ty, "ftrs"))
 			idx = 4;
-		else if (!strncmp(ty, "pwr_limit", 9))
+		else if (!strcmp(ty, "pwr_limit"))
 			idx = 5;
 		else
 			continue;
@@ -242,7 +242,7 @@ void rcd_phy_info(struct client *cl, struct phy *phy)
 		value = buf;
 		ty = strsep(&value, ";");
 
-		if (strncmp(buf, "sta", 3))
+		if (strcmp(buf, "sta"))
 			continue;
 
 		/* Newline character is included so no additional one */
@@ -403,8 +403,8 @@ phy_debugfs_monitor(struct client *cl, struct phy *phy, const char *file, char *
 	if (err)
 		return err;
 
-	rcd_client_broadcast("%s;0;debugfs_monitor;%s;%x;%x\n", phy_name(phy), file, port,
-	                     compression);
+	rcd_client_broadcast("%s;0;debugfs_monitor;%s;%x;%x\n", phy_name(phy), file,
+			     port, compression);
 	return 0;
 }
 
@@ -429,7 +429,6 @@ phy_debugfs(struct client *cl, struct phy *phy, char *cmd, const char *path, cha
 	} else {
 		return -EINVAL;
 	}
-
 }
 
 void rcd_phy_control(struct client *cl, char *data)
