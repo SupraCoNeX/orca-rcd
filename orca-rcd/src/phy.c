@@ -207,7 +207,11 @@ void rcd_phy_info(struct client *cl, struct phy *phy)
 	 * print the phy;add line before and then continue with the sta lines.
 	 * the API should ensure that there are no other lines after sta lines.
 	 */
-	while ((res = fgets(buf, sizeof(buf), f)) != NULL && strcmp(buf, "sta")) {
+	while (1) {
+		res = fgets(buf, sizeof(buf), f);
+		if (!res || !strncmp(buf, "sta", 3))
+			break;
+
 		value = buf;
 		ty = strsep(&value, ";");
 
@@ -242,7 +246,7 @@ void rcd_phy_info(struct client *cl, struct phy *phy)
 		value = buf;
 		ty = strsep(&value, ";");
 
-		if (strcmp(buf, "sta"))
+		if (strncmp(buf, "sta", 3))
 			continue;
 
 		/* Newline character is included so no additional one */
