@@ -6,11 +6,14 @@
 #include <libubox/ustream.h>
 #include "rcd.h"
 
+#define ORCA_RCD_VERSION	"2.0.0"
+
 const char *config_path = NULL; /* use the default set in libuci */
 
 static void
 usage(void)
 {
+	fprintf(stderr, "orca-rcd " ORCA_RCD_VERSION "\n\n");
 	fprintf(stderr, "usage: orca-rcd [-h INTERFACE]");
 #ifdef CONFIG_MQTT
 	fprintf(stderr, " [-i ID] [-t TOPIC_PREFIX] [-b BROKER]");

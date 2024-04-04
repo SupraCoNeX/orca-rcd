@@ -1,6 +1,6 @@
 #
 # Copyright (C) 2021 Felix Fietkau <nbd@nbd.name>
-# Copyright (C) 2021-2023 SupraCoNeX <supraconex@gmail.com>
+# Copyright (C) 2021-2024 SupraCoNeX <supraconex@gmail.com>
 #
 # This is free software, licensed under the GNU General Public License v2.
 # See /LICENSE for more information.
@@ -9,9 +9,10 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=orca-rcd
+PKG_VERSION:=2.0.0
 PKG_RELEASE:=1
 
-PKG_BUILD_DIR := $(BUILD_DIR)/$(PKG_NAME)-$(PKG_RELEASE)
+PKG_BUILD_DIR := $(BUILD_DIR)/$(PKG_NAME)-$(PKG_VERSION)-$(PKG_RELEASE)
 
 PKG_CONFIG_DEPENDS:= \
   CONFIG_MQTT_SUPPORT \
