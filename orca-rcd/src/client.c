@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0
 /* Copyright (C) 2021 Felix Fietkau <nbd@nbd.name> */
+/* Copyright (C) 2021-2024 SupraCoNeX Team <supraconex@gmail.com> */
+
 #include <libgen.h>
 #include <glob.h>
 #include <net/if.h>

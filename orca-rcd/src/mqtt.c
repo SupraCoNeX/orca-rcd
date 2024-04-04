@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: GPL-2.0
+/* Copyright (C) 2021-2024 SupraCoNeX Team <supraconex@gmail.com> */
+
 #include <sys/param.h>
 #include <errno.h>
 #include <mqtt_protocol.h>
