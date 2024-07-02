@@ -195,7 +195,7 @@ rcd_debugfs_monitoring_start(const char *path, int port, size_t bufsize, unsigne
 	if (fd < 0)
 		return errno;
 
-	ctx = calloc(sizeof(*ctx), 1);
+	ctx = calloc(1, sizeof(*ctx));
 	if (!ctx) {
 		close(fd);
 		return -ENOMEM;
