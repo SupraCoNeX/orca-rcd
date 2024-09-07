@@ -195,8 +195,8 @@ void rcd_api_info_dump(struct client *cl, struct phy *phy)
 void rcd_phy_info(struct client *cl, struct phy *phy)
 {
 	char buf[256];
-	char caps[6][128] = { "", "", "", "", "", "" };
-	char *ty, *value, *res;
+	char caps[4][128] = { "", "", "", "" };
+	char *type, *value, *res;
 	FILE *f;
 	int idx, max_len = 128;
 
@@ -205,54 +205,49 @@ void rcd_phy_info(struct client *cl, struct phy *phy)
 		return;
 
 	/*
-	 * need to stop when we encounter the first sta line. We want to 
+	 * need to stop when we encounter the first if or sta line. We want to 
 	 * print the phy;add line before and then continue with the sta lines.
 	 * the API should ensure that there are no other lines after sta lines.
 	 */
 	while (1) {
 		res = fgets(buf, sizeof(buf), f);
-		if (!res || !strncmp(buf, "sta", 3))
+		if (!res || !strncmp(buf, "if", 2) || !strncmp(buf, "sta", 3))
 			break;
 
 		value = buf;
-		ty = strsep(&value, ";");
+		type = strsep(&value, ";");
 
 		if (value)
-			value[ strlen(value) - 1 ] = '\0';
+			value[ strlen(value) - 1 ] = 0;
 
-		if (!strcmp(ty, "drv"))
+		if (!strcmp(type, "drv"))
 			idx = 0;
-		else if (!strcmp(ty, "if"))
+		else if (!strcmp(type, "tpc"))
 			idx = 1;
-		else if (!strcmp(ty, "mon"))
+		else if (!strcmp(type, "ftrs"))
 			idx = 2;
-		else if (!strcmp(ty, "tpc"))
+		else if (!strcmp(type, "pwr_limit"))
 			idx = 3;
-		else if (!strcmp(ty, "ftrs"))
-			idx = 4;
-		else if (!strcmp(ty, "pwr_limit"))
-			idx = 5;
 		else
 			continue;
 
 		strncpy(caps[idx], value, max_len);
 	}
 
-	client_phy_printf(cl, phy, "0;add;%s;%s;%s;%s;%s;%s\n", caps[0],
-				  caps[1], caps[2], caps[4], caps[3], caps[5]);
+	client_phy_printf(cl, phy, "0;add;%s;%s;%s;%s\n", caps[0],
+			  caps[2], caps[1], caps[3]);
 
 	if (!res)
 		goto out;
 
 	do {
 		value = buf;
-		ty = strsep(&value, ";");
+		type = strsep(&value, ";");
 
-		if (strncmp(buf, "sta", 3))
+		if (strncmp(buf, "if", 2) && strncmp(buf, "sta", 3))
 			continue;
 
-		/* Newline character is included so no additional one */
-		client_phy_printf(cl, phy, "0;sta;add;%s", value);
+		client_phy_printf(cl, phy, "0;%s;add;%s", type, value);
 	} while (fgets(buf, sizeof(buf), f) != NULL);
 
 out:
