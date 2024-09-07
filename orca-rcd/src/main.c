@@ -6,7 +6,7 @@
 #include <libubox/ustream.h>
 #include "rcd.h"
 
-#define ORCA_RCD_VERSION	"2.0.0"
+#define ORCA_RCD_VERSION	"3.0.0"
 
 const char *config_path = NULL; /* use the default set in libuci */
 
