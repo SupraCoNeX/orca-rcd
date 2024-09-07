@@ -31,11 +31,11 @@ phy0;16c4added930f1b4;txs;d4:a3:3d:5f:76:4a;1;1;1;266,2,1f;272,1,21;,,;,,
 ```
 Thus, `orca-rcd` always prepends the name/ID of the corresponding PHY before forwarding the output to its clients. This also applies to the static information that `orca-rcd` reads from `api_info` and forwards to its clients. This keeps the output format of all lines consistent to be easily parsed and processed. Taking a line of the raw `api_info` output which looks like:
 ```
-#start;txs;rxs;stats;sta;tprc_echo
+#start;iface;txs,rxs,stats,tprc_echo
 ```
 `orca-rcd` will prepend `*;0;` to this line so it looks like:
 ```
-*;0;#start;txs;rxs;stats;sta;tprc_echo
+*;0;#start;iface;txs,rxs,stats,tprc_echo
 ```
 In detail, `*;0` is analogous to `phy0;16c4added930f1b4` and means, that the line belongs to all PHYs (`*` is wildcard) and the timestamp is set to 0 as is has no relevant meaning for such lines.
 
@@ -51,24 +51,47 @@ phy0;set_rates_power;aa:bb:cc:dd:ee:ff;d7,4,a;d2,4,c;c1,4,1f
 
 ## PHY-specific capabilities/information produced by `orca-rcd`
 
-Upon establishing a connection to ORCA-RCD, the `api_info` is read and printed. However, this static output only contains global information and thus, `orca-rcd` reads this for only one WiFi device. After this, `orca-rcd` reads `api_phy` for each PHY and passes the contained information in a condensed format to its clients. The format syntax is as follows:
+Upon establishing a connection to ORCA-RCD, the `api_info` is read and printed. However, this static output only contains global information and thus, `orca-rcd` reads this for only one WiFi device. After this, `orca-rcd` reads `api_phy` for each PHY and passes the contained information in a condensed format to its clients. Information is passed with three kinds of lines:
+- phy;add
+- if;add
+- sta;add
+
+### phy;add
+
+This kind of line contains the information of a PHY. The format syntax is as follows:
 ```
-<phy>;<timestamp>;<type>;<driver>;<vifs>;<active_mon>;<num_ftrs>;<ftrs>;<tpc_caps>;<max_tpc>
+<phy>;<timestamp>;add;<driver>;<num_ftrs>;<ftrs>;<tpc_caps>;<max_tpc>
 ```
-Example: `phy1;0;add;ath9k;phy1-ap0,phy1-sta0;mrr;1;0,40,0,2`
+Example: `wl2;0;add;mt7615e;4;adaptive_sens,1;tpc,0;pwr-user,17;force-rr,0;pkt;1;0,20,e0,2;2e`
 
 |Field|Explanation|
 |:----|:----------|
 |`<phy>`|ID/name of the WiFi device|
 |`<timestamp>`|Timestamp, for initial ORCA-RCD generated lines always `0`.|
-|`<type>`|Denotes that a WiFi device action occured. When connecting to ORCA-RCD, WiFi devices are always added, thus this will be `add`|
 |`<driver>`|Name of the driver that is assigned to the WiFi device.|
-|`<vifs>`|List of virtual interfaces assigned to the WiFi device, separated by `;`.|
-|`<active_mon>`| Comma-separated list of active monitor modes. |
 |`<num_ftrs>`| Number of following feature blocks. |
 |`<ftrs>`| `<num_ftrs>` feature blocks showing the supported features and their current states. Each feature block has the format `<ftr>,<state>` where `ftr` is the feature identifier and `state` the numeric state of the feature.|
 |`<tpc_caps>`| TPC capabilities as described in [ORCA `api_phy` output](https://github.com/SupraCoNeX/orca#api_phy---phy-specific-api-info) |
 |`<max_tpc>`| The maximum power index (refering to `tpc_caps`) that can be set via the TPC feature. |
+
+### if;add
+
+This kind of line contains information about one of a PHY's interfaces. The format syntax is as follows:
+```
+<phy>;<timestamp>;if;add;<name>;<active_mon>
+```
+Example: `wl2;0;if;wl2-ap0;txs,rxs`
+
+|Field|Explanation|
+|:----|:----------|
+|`<phy>`|ID/name of the WiFi device|
+|`<timestamp>`|Timestamp, for initial ORCA-RCD generated lines always `0`.|
+|`<name>`|Name of the interface.|
+|`<active_mon>`|Comma-separated list of active monitoring modes on this interface.|
+
+### sta;add
+
+This kind of line contains information about the PHY's currently recognized stations. The format syntax is equal to the `sta;add` lines issues by ORCA UAPI itself, as seen [here](https://github.com/SupraCoNeX/orca/blob/main/README.md#station-events)
 
 ## How to setup a connection to `orca-rcd`?
 
